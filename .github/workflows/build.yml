@@ -1,0 +1,50 @@
+name: Build Windows Installer
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.7'
+
+    - run: pip install pyinstaller PyQt5 matplotlib python-docx requests
+
+    - run: |
+        pyinstaller -F -w -n AI学情分析系统 ^
+        --hidden-import=PyQt5.sip ^
+        --add-data "students.json;." ^
+        --add-data "users.json;." ^
+        --add-data "data.json;." ^
+        --add-data "user.db;." ^
+        AI学情分析系统.py
+
+    - run: choco install innosetup -y
+
+    - run: |
+        echo [Setup] > setup.iss
+        echo AppName=AI学情分析系统 >> setup.iss
+        echo AppVersion=1.0 >> setup.iss
+        echo DefaultDirName={pf}\AI学情分析系统 >> setup.iss
+        echo OutputDir=installer >> setup.iss
+        echo OutputBaseFilename=安装包 >> setup.iss
+
+        echo [Files] >> setup.iss
+        echo Source: "dist\AI学情分析系统.exe"; DestDir: "{app}" >> setup.iss
+
+        echo [Icons] >> setup.iss
+        echo Name: "{group}\AI学情分析系统"; Filename: "{app}\AI学情分析系统.exe" >> setup.iss
+
+    - run: iscc setup.iss
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: 安装包
+        path: installer/
