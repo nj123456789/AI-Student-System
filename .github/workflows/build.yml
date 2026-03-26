@@ -9,26 +9,25 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: 📥 拉取代码
+      uses: actions/checkout@v3
 
-    - uses: actions/setup-python@v4
+    - name: 🐍 安装 Python
+      uses: actions/setup-python@v4
       with:
         python-version: '3.7'
 
-    - run: pip install pyinstaller PyQt5 matplotlib python-docx requests
+    - name: 📦 安装依赖
+      run: pip install pyinstaller PyQt5 matplotlib python-docx requests
 
-    - run: |
-        pyinstaller -F -w -n AI学情分析系统 ^
-        --hidden-import=PyQt5.sip ^
-        --add-data "students.json;." ^
-        --add-data "users.json;." ^
-        --add-data "data.json;." ^
-        --add-data "user.db;." ^
-        AI学情分析系统.py
+    - name: 🔨 打包 EXE
+      run: pyinstaller -F -w -n AI学情分析系统 --hidden-import=PyQt5.sip --add-data "students.json;." --add-data "users.json;." --add-data "data.json;." --add-data "user.db;." AI学情分析系统.py
 
-    - run: choco install innosetup -y
+    - name: 📦 安装 Inno Setup
+      run: choco install innosetup -y
 
-    - run: |
+    - name: 🏗 生成安装包脚本
+      run: |
         echo [Setup] > setup.iss
         echo AppName=AI学情分析系统 >> setup.iss
         echo AppVersion=1.0 >> setup.iss
@@ -42,9 +41,11 @@ jobs:
         echo [Icons] >> setup.iss
         echo Name: "{group}\AI学情分析系统"; Filename: "{app}\AI学情分析系统.exe" >> setup.iss
 
-    - run: iscc setup.iss
+    - name: 🚀 编译安装包
+      run: iscc setup.iss
 
-    - uses: actions/upload-artifact@v4
+    - name: 📤 上传安装包
+      uses: actions/upload-artifact@v4
       with:
         name: 安装包
         path: installer/
